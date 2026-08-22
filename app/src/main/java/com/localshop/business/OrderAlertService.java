@@ -13,7 +13,7 @@ import java.util.Locale;
 public class OrderAlertService extends Service implements TextToSpeech.OnInitListener {
     private TextToSpeech tts;
     private PowerManager.WakeLock wakeLock;
-    private String speech="New order received. Start packing.";
+    private String speech="";
 
     @Override public int onStartCommand(Intent intent,int flags,int startId) {
         OrderNotification.createChannel(this);
@@ -22,13 +22,14 @@ public class OrderAlertService extends Service implements TextToSpeech.OnInitLis
         String shopName=intent.getStringExtra("shop_name");
         String total=intent.getStringExtra("total");
         String path=intent.getStringExtra("order_path");
-        speech="New order received. Start packing. Order number "+(orderNo==null?"":orderNo)+".";
+        speech=(orderNo==null||orderNo.isEmpty())?"":"Order number "+orderNo+".";
         startForeground(4901,OrderNotification.build(this,orderId,orderNo==null?"New":orderNo,shopName==null?"Alpha Mart":shopName,total,path));
         PowerManager pm=(PowerManager)getSystemService(Context.POWER_SERVICE);
-        if(pm!=null){wakeLock=pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,"LocalShop:OrderVoice");wakeLock.acquire(15000);}
+        if(pm!=null){wakeLock=pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,"LocalShop:OrderVoice");wakeLock.acquire(12000);}
         Vibrator v=(Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
         if(v!=null){v.vibrate(VibrationEffect.createWaveform(new long[]{0,600,180,600,180,1000},-1));}
-        tts=new TextToSpeech(getApplicationContext(),this);
+        if(!speech.isEmpty()) tts=new TextToSpeech(getApplicationContext(),this);
+        else new android.os.Handler(getMainLooper()).postDelayed(this::finishAlert,5000);
         return START_NOT_STICKY;
     }
 
@@ -37,8 +38,8 @@ public class OrderAlertService extends Service implements TextToSpeech.OnInitLis
             tts.setLanguage(new Locale("en","IN"));
             tts.setSpeechRate(0.92f);
             tts.setPitch(1.0f);
-            tts.speak(speech,TextToSpeech.QUEUE_FLUSH,null,"new_order_voice");
-            new android.os.Handler(getMainLooper()).postDelayed(this::finishAlert,7000);
+            tts.speak(speech,TextToSpeech.QUEUE_FLUSH,null,"new_order_number");
+            new android.os.Handler(getMainLooper()).postDelayed(this::finishAlert,5000);
         } else finishAlert();
     }
 
