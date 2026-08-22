@@ -1,0 +1,17 @@
+{
+  "project_info": {
+    "project_number": "197706072600",
+    "project_id": "localshop-buissness",
+    "storage_bucket": "localshop-buissness.firebasestorage.app"
+  },
+  "client": [{
+    "client_info": {
+      "mobilesdk_app_id": "1:197706072600:android:f5d632a86d08f5a8c8f96d",
+      "android_client_info": {"package_name": "com.localshop.business"}
+    },
+    "oauth_client": [],
+    "api_key": [{"current_key": "AIzaSyCCxhXJfoFJWbMZtDBN9j5SryANupY2EBg"}],
+    "services": {"appinvite_service": {"other_platform_oauth_client": []}}
+  }],
+  "configuration_version": "1"
+}
