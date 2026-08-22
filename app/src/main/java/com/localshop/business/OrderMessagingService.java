@@ -15,9 +15,14 @@ public class OrderMessagingService extends FirebaseMessagingService {
         String total=value(message,"total","");
         String role=value(message,"role","owner");
         String shopId=value(message,"shop_id","");
-        String path="super_founder".equals(role)
-            ? "/superfounder/?shop="+android.net.Uri.encode(shopId)+"&order="+android.net.Uri.encode(orderId)+"&alert=1"
-            : "/admin/?order="+android.net.Uri.encode(orderId)+"&alert=1";
+        String path;
+        if("super_founder".equals(role)) {
+            path="/superfounder/?shop="+android.net.Uri.encode(shopId)+"&order="+android.net.Uri.encode(orderId)+"&alert=1";
+        } else if("founder".equals(role)) {
+            path="/founder/?order="+android.net.Uri.encode(orderId)+"&alert=1";
+        } else {
+            path="/admin/?order="+android.net.Uri.encode(orderId)+"&alert=1";
+        }
 
         Intent alert=new Intent(this,OrderAlertService.class)
             .putExtra("order_id",orderId)
