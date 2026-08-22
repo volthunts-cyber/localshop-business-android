@@ -1,21 +1,30 @@
 package com.localshop.business;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.FileProvider;
 import com.google.firebase.messaging.FirebaseMessaging;
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
+    private static final int FILE_CHOOSER_REQUEST = 2002;
     private WebView webView;
+    private ValueCallback<Uri[]> fileCallback;
+    private Uri pendingCameraUri;
 
     public final class NativeBridge {
         @JavascriptInterface public String getFcmToken() {
@@ -35,7 +44,43 @@ public class MainActivity extends AppCompatActivity {
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
         webView.addJavascriptInterface(new NativeBridge(), "LocalShopNative");
-        webView.setWebChromeClient(new WebChromeClient());
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
+                if (fileCallback != null) fileCallback.onReceiveValue(null);
+                fileCallback = callback;
+                pendingCameraUri = null;
+                try {
+                    Intent picker = new Intent(Intent.ACTION_GET_CONTENT);
+                    picker.addCategory(Intent.CATEGORY_OPENABLE);
+                    picker.setType("image/*");
+
+                    Intent camera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                    if (dir != null && camera.resolveActivity(getPackageManager()) != null) {
+                        File photo = File.createTempFile("delivery-proof-", ".jpg", dir);
+                        pendingCameraUri = FileProvider.getUriForFile(MainActivity.this, getPackageName() + ".fileprovider", photo);
+                        camera.putExtra(MediaStore.EXTRA_OUTPUT, pendingCameraUri);
+                        camera.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    }
+
+                    Intent intent;
+                    if (params != null && params.isCaptureEnabled() && pendingCameraUri != null) {
+                        intent = camera;
+                    } else {
+                        Intent chooser = Intent.createChooser(picker, "Take or choose delivery photo");
+                        if (pendingCameraUri != null) chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{camera});
+                        intent = chooser;
+                    }
+                    startActivityForResult(intent, FILE_CHOOSER_REQUEST);
+                    return true;
+                } catch (Exception e) {
+                    fileCallback.onReceiveValue(null);
+                    fileCallback = null;
+                    pendingCameraUri = null;
+                    return false;
+                }
+            }
+        });
         webView.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri u = request.getUrl();
@@ -57,6 +102,21 @@ public class MainActivity extends AppCompatActivity {
             if (webView != null) webView.post(() -> webView.evaluateJavascript("window.dispatchEvent(new Event('localshop-fcm-token-ready'))", null));
         });
         openFromIntent(getIntent());
+    }
+
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == FILE_CHOOSER_REQUEST) {
+            Uri[] result = null;
+            if (resultCode == Activity.RESULT_OK) {
+                if (data != null && data.getData() != null) result = new Uri[]{data.getData()};
+                else if (pendingCameraUri != null) result = new Uri[]{pendingCameraUri};
+            }
+            if (fileCallback != null) fileCallback.onReceiveValue(result);
+            fileCallback = null;
+            pendingCameraUri = null;
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override protected void onNewIntent(Intent intent) {
