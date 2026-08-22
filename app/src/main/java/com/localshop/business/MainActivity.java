@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
@@ -16,6 +17,13 @@ import com.google.firebase.messaging.FirebaseMessaging;
 public class MainActivity extends AppCompatActivity {
     private WebView webView;
 
+    public final class NativeBridge {
+        @JavascriptInterface public String getFcmToken() {
+            return getSharedPreferences("localshop", MODE_PRIVATE).getString("fcm_token", "");
+        }
+        @JavascriptInterface public String getPlatform() { return "android"; }
+    }
+
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         webView = new WebView(this);
@@ -25,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
         }
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
+        webView.addJavascriptInterface(new NativeBridge(), "LocalShopNative");
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -36,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
         });
         FirebaseMessaging.getInstance().getToken().addOnSuccessListener(token -> {
             getSharedPreferences("localshop", MODE_PRIVATE).edit().putString("fcm_token", token).apply();
+            if (webView != null) webView.post(() -> webView.evaluateJavascript("window.dispatchEvent(new Event('localshop-fcm-token-ready'))", null));
         });
         openFromIntent(getIntent());
     }
