@@ -6,24 +6,25 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
-import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import androidx.core.app.NotificationCompat;
 
 public final class OrderNotification {
-    public static final String CHANNEL="new_orders_voice_v2";
+    public static final String CHANNEL="new_orders_voice_v3";
     private OrderNotification() {}
 
     public static void createChannel(Context context) {
         if (Build.VERSION.SDK_INT < 26) return;
         NotificationManager nm=context.getSystemService(NotificationManager.class);
         if (nm==null) return;
-        Uri sound=RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-        if(sound==null)sound=RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        AudioAttributes attrs=new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build();
+        Uri sound=Uri.parse("android.resource://"+context.getPackageName()+"/"+R.raw.order_voice_alert);
+        AudioAttributes attrs=new AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_ALARM)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build();
         NotificationChannel c=new NotificationChannel(CHANNEL,"Urgent new orders",NotificationManager.IMPORTANCE_HIGH);
-        c.setDescription("Vibration, loud alarm sound and order alerts for new LocalShop orders");
+        c.setDescription("Spoken new-order alert, vibration and lock-screen notification");
         c.enableVibration(true);
         c.setVibrationPattern(new long[]{0,600,180,600,180,1000});
         c.setSound(sound,attrs);
@@ -45,7 +46,9 @@ public final class OrderNotification {
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setAutoCancel(true).setOngoing(false).setContentIntent(pi)
-            .setVibrate(new long[]{0,600,180,600,180,1000}).build();
+            .setAutoCancel(true)
+            .setContentIntent(pi)
+            .setVibrate(new long[]{0,600,180,600,180,1000})
+            .build();
     }
 }
