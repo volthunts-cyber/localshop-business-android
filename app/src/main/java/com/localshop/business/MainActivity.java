@@ -39,7 +39,15 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri u = request.getUrl();
-                if ("http".equals(u.getScheme()) || "https".equals(u.getScheme())) return false;
+                String host = u.getHost() == null ? "" : u.getHost().toLowerCase();
+                String scheme = u.getScheme() == null ? "" : u.getScheme().toLowerCase();
+                boolean maps = host.contains("google.com") && u.getPath() != null && u.getPath().contains("/maps")
+                    || host.contains("maps.google") || host.equals("maps.app.goo.gl") || "geo".equals(scheme);
+                if (maps || "tel".equals(scheme) || "upi".equals(scheme)) {
+                    try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception ignored) {}
+                    return true;
+                }
+                if ("http".equals(scheme) || "https".equals(scheme)) return false;
                 try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception ignored) {}
                 return true;
             }
@@ -66,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
             if (orderId != null && !orderId.isEmpty()) {
                 if ("super_founder".equals(role)) {
                     path="/superfounder/?shop="+Uri.encode(shopId==null?"":shopId)+"&order="+Uri.encode(orderId)+"&alert=1";
+                } else if ("founder".equals(role)) {
+                    path="/founder/?order="+Uri.encode(orderId)+"&alert=1";
                 } else {
                     path="/admin/?order="+Uri.encode(orderId)+"&alert=1";
                 }
