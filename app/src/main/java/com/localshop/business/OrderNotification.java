@@ -11,8 +11,8 @@ import android.os.Build;
 import androidx.core.app.NotificationCompat;
 
 public final class OrderNotification {
-    // New channel ID is intentional: Android freezes sound/vibration settings for an existing channel.
-    public static final String CHANNEL="localshop_new_orders_v4";
+    // Fresh channel so Android cannot keep old muted/vibration settings from previous installs.
+    public static final String CHANNEL="localshop_founder_orders_v5";
     private OrderNotification() {}
 
     public static void createChannel(Context context) {
@@ -24,10 +24,10 @@ public final class OrderNotification {
             .setUsage(AudioAttributes.USAGE_ALARM)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build();
-        NotificationChannel c=new NotificationChannel(CHANNEL,"New orders — loud alerts",NotificationManager.IMPORTANCE_HIGH);
-        c.setDescription("Founder/Super Founder new-order sound and vibration");
+        NotificationChannel c=new NotificationChannel(CHANNEL,"Founder new orders — urgent",NotificationManager.IMPORTANCE_HIGH);
+        c.setDescription("Urgent Alpha Mart order alert with sound, vibration and lock-screen visibility");
         c.enableVibration(true);
-        c.setVibrationPattern(new long[]{0,650,160,650,160,1100});
+        c.setVibrationPattern(new long[]{0,700,150,700,150,1200,200,1200});
         c.setSound(sound,attrs);
         c.setBypassDnd(true);
         c.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
@@ -38,10 +38,10 @@ public final class OrderNotification {
         Intent open=new Intent(context,MainActivity.class).putExtra("order_path",path).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
         int code=(orderId==null?String.valueOf(System.currentTimeMillis()):orderId).hashCode();
         PendingIntent pi=PendingIntent.getActivity(context,code,open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
-        String body="Order #"+orderNo+" received"+(total==null||total.isEmpty()?"":" • ₹"+total)+". Start packing.";
+        String body="Order #"+orderNo+" received"+(total==null||total.isEmpty()?"":" • ₹"+total)+". Check Founder now.";
         return new NotificationCompat.Builder(context,CHANNEL)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle(shopName+" — New order")
+            .setContentTitle(shopName+" — NEW ORDER")
             .setContentText(body)
             .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -49,7 +49,7 @@ public final class OrderNotification {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .setContentIntent(pi)
-            .setVibrate(new long[]{0,650,160,650,160,1100})
+            .setVibrate(new long[]{0,700,150,700,150,1200,200,1200})
             .setSound(Uri.parse("android.resource://"+context.getPackageName()+"/"+R.raw.order_voice_alert))
             .build();
     }
