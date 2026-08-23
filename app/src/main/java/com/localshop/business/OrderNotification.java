@@ -11,7 +11,8 @@ import android.os.Build;
 import androidx.core.app.NotificationCompat;
 
 public final class OrderNotification {
-    public static final String CHANNEL="new_orders_voice_v3";
+    // New channel ID is intentional: Android freezes sound/vibration settings for an existing channel.
+    public static final String CHANNEL="localshop_new_orders_v4";
     private OrderNotification() {}
 
     public static void createChannel(Context context) {
@@ -23,10 +24,10 @@ public final class OrderNotification {
             .setUsage(AudioAttributes.USAGE_ALARM)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build();
-        NotificationChannel c=new NotificationChannel(CHANNEL,"Urgent new orders",NotificationManager.IMPORTANCE_HIGH);
-        c.setDescription("Spoken new-order alert, vibration and lock-screen notification");
+        NotificationChannel c=new NotificationChannel(CHANNEL,"New orders — loud alerts",NotificationManager.IMPORTANCE_HIGH);
+        c.setDescription("Founder/Super Founder new-order sound and vibration");
         c.enableVibration(true);
-        c.setVibrationPattern(new long[]{0,600,180,600,180,1000});
+        c.setVibrationPattern(new long[]{0,650,160,650,160,1100});
         c.setSound(sound,attrs);
         c.setBypassDnd(true);
         c.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
@@ -48,7 +49,8 @@ public final class OrderNotification {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .setContentIntent(pi)
-            .setVibrate(new long[]{0,600,180,600,180,1000})
+            .setVibrate(new long[]{0,650,160,650,160,1100})
+            .setSound(Uri.parse("android.resource://"+context.getPackageName()+"/"+R.raw.order_voice_alert))
             .build();
     }
 }
