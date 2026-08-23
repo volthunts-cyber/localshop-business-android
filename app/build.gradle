@@ -1,21 +1,53 @@
 plugins {
     id 'com.android.application'
-    id 'com.google.gms.google-services'
 }
+
 android {
     namespace 'com.localshop.business'
     compileSdk 35
+
     defaultConfig {
         applicationId 'com.localshop.business'
         minSdk 26
         targetSdk 35
-        versionCode 2
-        versionName '1.1.0'
+        versionCode 3
+        versionName '1.2.0'
         buildConfigField 'String', 'BUSINESS_BASE_URL', '"https://mallapur-alphamart.netlify.app"'
+        buildConfigField 'String', 'FIREBASE_PROJECT_ID', '"localshop-buissness"'
+        buildConfigField 'String', 'FIREBASE_APPLICATION_ID', '"1:197706072600:android:f5d632a86d08f5a8c8f96d"'
+        buildConfigField 'String', 'FIREBASE_API_KEY', '"AIzaSyCCxhXJfoFJWbMZtDBN9j5SryANupY2EBg"'
+        buildConfigField 'String', 'FIREBASE_SENDER_ID', '"197706072600"'
     }
+
+    flavorDimensions 'role'
+    productFlavors {
+        admin {
+            dimension 'role'
+            applicationIdSuffix '.admin'
+            buildConfigField 'String', 'START_PATH', '"/admin/"'
+            buildConfigField 'String', 'APP_ROLE', '"admin"'
+            manifestPlaceholders = [appLabel: 'Alpha Mart Admin']
+        }
+        founder {
+            dimension 'role'
+            applicationIdSuffix '.founder'
+            buildConfigField 'String', 'START_PATH', '"/founder/"'
+            buildConfigField 'String', 'APP_ROLE', '"founder"'
+            manifestPlaceholders = [appLabel: 'Alpha Mart Founder']
+        }
+        superfounder {
+            dimension 'role'
+            applicationIdSuffix '.superfounder'
+            buildConfigField 'String', 'START_PATH', '"/superfounder/"'
+            buildConfigField 'String', 'APP_ROLE', '"superfounder"'
+            manifestPlaceholders = [appLabel: 'LocalShop Super Founder']
+        }
+    }
+
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     buildFeatures { buildConfig true }
 }
+
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:33.7.0')
     implementation 'com.google.firebase:firebase-messaging'
