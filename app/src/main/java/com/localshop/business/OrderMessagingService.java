@@ -2,6 +2,9 @@ package com.localshop.business;
 
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.os.Build;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import androidx.core.content.ContextCompat;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -9,20 +12,34 @@ import com.google.firebase.messaging.RemoteMessage;
 public class OrderMessagingService extends FirebaseMessagingService {
     @Override public void onMessageReceived(RemoteMessage message) {
         if(!"new_order".equals(value(message,"type","new_order"))) return;
+
+        String targetRole=value(message,"role","");
+        String appRole=BuildConfig.APP_ROLE;
+        if("admin".equals(appRole)) return;
+        if(!targetRole.isEmpty()) {
+            boolean roleMatches=("founder".equals(appRole)&&"founder".equals(targetRole))
+                || ("superfounder".equals(appRole)&&("super_founder".equals(targetRole)||"superfounder".equals(targetRole)));
+            if(!roleMatches) return;
+        }
+
         String orderId=value(message,"order_id",String.valueOf(System.currentTimeMillis()));
         String orderNo=value(message,"order_number","New");
         String shopName=value(message,"shop_name","Alpha Mart");
         String total=value(message,"total","");
-        String role=value(message,"role","owner");
         String shopId=value(message,"shop_id","");
-        String path;
-        if("super_founder".equals(role)) {
-            path="/superfounder/?shop="+android.net.Uri.encode(shopId)+"&order="+android.net.Uri.encode(orderId)+"&alert=1";
-        } else if("founder".equals(role)) {
-            path="/founder/?order="+android.net.Uri.encode(orderId)+"&alert=1";
-        } else {
-            path="/admin/?order="+android.net.Uri.encode(orderId)+"&alert=1";
-        }
+        String path="superfounder".equals(appRole)
+            ? "/superfounder/?shop="+android.net.Uri.encode(shopId)+"&order="+android.net.Uri.encode(orderId)+"&alert=1"
+            : "/founder/?order="+android.net.Uri.encode(orderId)+"&alert=1";
+
+        // Give immediate tactile feedback before starting the foreground alert service.
+        try {
+            Vibrator vibrator=(Vibrator)getSystemService(VIBRATOR_SERVICE);
+            if(vibrator!=null&&vibrator.hasVibrator()) {
+                long[] pattern=new long[]{0,650,160,650,160,1100};
+                if(Build.VERSION.SDK_INT>=26) vibrator.vibrate(VibrationEffect.createWaveform(pattern,-1));
+                else vibrator.vibrate(pattern,-1);
+            }
+        } catch(Exception ignored) {}
 
         Intent alert=new Intent(this,OrderAlertService.class)
             .putExtra("order_id",orderId)
