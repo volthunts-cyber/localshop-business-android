@@ -10,8 +10,8 @@ android {
         applicationId 'com.localshop.business'
         minSdk 26
         targetSdk 35
-        versionCode 3
-        versionName '1.2.0'
+        versionCode 4
+        versionName '1.3.0'
         buildConfigField 'String', 'BUSINESS_BASE_URL', '"https://mallapur-alphamart.netlify.app"'
         buildConfigField 'String', 'FIREBASE_PROJECT_ID', '"localshop-buissness"'
         buildConfigField 'String', 'FIREBASE_APPLICATION_ID', '"1:197706072600:android:f5d632a86d08f5a8c8f96d"'
