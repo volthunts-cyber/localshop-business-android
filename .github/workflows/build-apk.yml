@@ -1,4 +1,4 @@
-name: Build LocalShop v17 Role APKs
+name: Build LocalShop v20 Role APKs
 on:
   workflow_dispatch:
   push:
@@ -17,20 +17,20 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Build all v17 role APKs
+      - name: Build all v20 role APKs
         run: gradle :app:assembleAdminDebug :app:assembleFounderDebug :app:assembleSuperfounderDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: alpha-mart-v17-admin-apk
+          name: alpha-mart-v20-admin-apk
           path: app/build/outputs/apk/admin/debug/app-admin-debug.apk
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
-          name: alpha-mart-v17-founder-apk
+          name: alpha-mart-v20-founder-apk
           path: app/build/outputs/apk/founder/debug/app-founder-debug.apk
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
-          name: localshop-v17-superfounder-apk
+          name: localshop-v20-superfounder-apk
           path: app/build/outputs/apk/superfounder/debug/app-superfounder-debug.apk
           if-no-files-found: error
